@@ -1,0 +1,193 @@
+# Name of the maybe-finance application
+name: maybe-finance
+
+# Postgres environment variables
+x-db-env: &db_env
+  POSTGRES_DB: maybe_production
+  POSTGRES_USER: maybe_user
+  POSTGRES_PASSWORD: casaos
+
+# Rails app environment variables
+x-rails-env: &rails_env
+  <<: *db_env
+  SELF_HOSTED: "true"
+  RAILS_FORCE_SSL: "false"
+  RAILS_ASSUME_SSL: "false"
+  GOOD_JOB_EXECUTION_MODE: async
+  SECRET_KEY_BASE: SECRET_KEY_BASE
+  DB_HOST: maybe-finance-postgres
+  REDIS_URL: redis://redis:6379/1
+  OPENAI_ACCESS_TOKEN: ""
+
+# Service definitions for the maybe-finance application
+services:
+  maybe-finance:
+    container_name: maybe-finance
+    image: ghcr.io/maybe-finance/maybe:sha-9fa3698823476a5b1773176ed67bb3d327d1dc05
+    restart: unless-stopped
+    privileged: false
+    networks:
+      - maybe_finance_network
+    volumes:
+      - /DATA/AppData/$AppID/app-storage:/rails/storage
+    ports:
+      - 4000:3000
+    environment:
+      <<: *rails_env
+    depends_on:
+      maybe-finance-postgres:
+        condition: service_healthy
+      maybe-finance-redis:
+        condition: service_healthy
+    x-casaos:
+      volumes:
+        - container: /rails/storage
+          description:
+            en_us: "Container Path: /rails/storage"
+      ports:
+        - container: "3000"
+          description:
+            en_us: "Container Port: 3000"
+      envs:
+        - container: SELF_HOSTED
+          description:
+            en_us: "Indicates whether the application is self-hosted (true/false)."
+        - container: RAILS_FORCE_SSL
+          description:
+            en_us: "Determines if SSL should be forced (true/false)."
+        - container: SECRET_KEY_BASE
+          description:
+            en_us: "Secret key used for verifying the integrity of signed cookies."
+        - container: DB_HOST
+          description:
+            en_us: "Hostname for the PostgreSQL database service."
+        - container: POSTGRES_DB
+          description:
+            en_us: "PostgreSQL database to be created and used by the application."
+        - container: POSTGRES_USER
+          description:
+            en_us: "Username for connecting to the PostgreSQL database."
+        - container: POSTGRES_PASSWORD
+          description:
+            en_us: "Password for the PostgreSQL user."
+        - container: REDIS_URL
+          description: 
+            en_us: "Hostname of the Rails service"
+        - container: OPENAI_ACCESS_TOKEN
+          description:
+            en_us: "OpenAI API access token. NOTE: enabling OpenAI will incur costs when you use AI-related features in the app (chat, rules). Make sure you have set appropriate spend limits on your account before adding this."
+
+  maybe-finance-postgres:
+    container_name: maybe-finance-postgres
+    image: postgres:16
+    restart: unless-stopped
+    volumes:
+      - /DATA/AppData/$AppID/postgres-data:/var/lib/postgresql/data
+    environment:
+      <<: *db_env
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U maybe_user -d maybe_production" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+    networks:
+      - maybe_finance_network
+
+    x-casaos:
+      volumes:
+        - container: /var/lib/postgresql/data
+          description:
+            en_us: "Container Path: /var/lib/postgresql/data"
+      envs:
+        - container: POSTGRES_DB
+          description:
+            en_us: "PostgreSQL database to be created and used by the application."
+        - container: POSTGRES_USER
+          description:
+            en_us: "Username for connecting to the PostgreSQL database."
+        - container: POSTGRES_PASSWORD
+          description:
+            en_us: "Password for the PostgreSQL user."
+
+  maybe-finance-worker:
+    container_name: maybe-finance-worker
+    image: ghcr.io/maybe-finance/maybe:sha-9fa3698823476a5b1773176ed67bb3d327d1dc05
+    restart: unless-stopped
+    command: bundle exec sidekiq
+    depends_on:
+      maybe-finance-redis:
+        condition: service_healthy
+    environment:
+      <<: *rails_env
+    networks:
+      - maybe_finance_network
+
+  maybe-finance-redis:
+    container_name: maybe-finance-redis
+    image: redis:latest
+    restart: unless-stopped
+    environment:
+      <<: *rails_env
+    volumes:
+      - /DATA/AppData/$AppID/redis-data:/var/lib/redis/data
+    networks:
+      - maybe_finance_network
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    x-casaos:
+      volumes
+        - container: /var/lib/redis/data
+          description:
+            en_us: "Container Path: /var/lib/redis/data"
+      envs:
+        - container: REDIS_URL
+          description: 
+            en_us: "Hostname of the Rails service"
+
+networks:
+  maybe_finance_network:
+    name: maybe_finance_network
+
+# CasaOS specific configuration
+x-casaos:
+  architectures:
+    - amd64
+  main: maybe-finance
+  description:
+    en_us:
+      Maybe is a fully* open-source OS for your personal finances 
+      built by a small team alongside an incredible community Discord
+  tagline:
+    en_us: maybe-finance
+  developer: "Maybe Finance"
+  author: Sergix
+  icon: https://raw.githubusercontent.com/maybe-finance/maybe/refs/heads/main/app/assets/images/logo-color.png
+  thumbnail: ""
+  store_app_id: maybefinance
+  tips:
+    before_install:
+      en_us: >
+        Generate the app secret key:
+
+          1. Open a terminal and digit:
+
+          ```bash
+          head -c 64 /dev/urandom | od -An -tx1 | tr -d ' \n' && echo
+          ```
+          2. Copy the generated key and paste it in the `SECRET_KEY_BASE`.
+
+          3. Save the changes and restart the application.
+
+        For more information, refer to the [official documentation](https://maybe.co)
+
+  title:
+    custom: "Maybe Finance"
+    en_us: Maybe Finance
+
+  category: Sergix-CasaOS
+  port_map: "4000"
+  scheme: http
