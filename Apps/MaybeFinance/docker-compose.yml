@@ -167,7 +167,6 @@ x-casaos:
   author: Sergix
   icon: https://raw.githubusercontent.com/maybe-finance/maybe/refs/heads/main/app/assets/images/logo-color.png
   thumbnail: ""
-  store_app_id: maybefinance
   tips:
     before_install:
       en_us: >
@@ -188,6 +187,7 @@ x-casaos:
     custom: "Maybe Finance"
     en_us: Maybe Finance
 
-  category: Sergix-CasaOS
+  index: /
+  category: Sergix
   port_map: "4000"
   scheme: http
