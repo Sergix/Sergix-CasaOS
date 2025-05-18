@@ -1,8 +1,12 @@
 {
-  "name": "maybe-finance",
+  "name": "sergix-maybe-finance",
   "title": "Maybe Finance",
   "version": "sha-9522a191de1f258d76ed996ba1c84e3a0629dd80",
   "website": "https://maybefinance.com/",
+  "screenshots": [],
+  "category": [
+    "Sergix"
+  ],
   "developer": {
     "name": "Maybe Finance, Inc.",
     "website": "https://maybefinance.com/",
