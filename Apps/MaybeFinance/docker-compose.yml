@@ -1,5 +1,5 @@
-# Name of the maybe-finance application
-name: maybe-finance
+# Name of the sergix-maybe-finance application
+name: sergix-maybe-finance
 
 # Postgres environment variables
 x-db-env: &db_env
@@ -15,14 +15,14 @@ x-rails-env: &rails_env
   RAILS_ASSUME_SSL: "false"
   GOOD_JOB_EXECUTION_MODE: async
   SECRET_KEY_BASE: SECRET_KEY_BASE
-  DB_HOST: maybe-finance-postgres
+  DB_HOST: sergix-maybe-finance-postgres
   REDIS_URL: redis://redis:6379/1
   OPENAI_ACCESS_TOKEN: ""
 
-# Service definitions for the maybe-finance application
+# Service definitions for the sergix-maybe-finance application
 services:
-  maybe-finance:
-    container_name: maybe-finance
+  sergix-maybe-finance:
+    container_name: sergix-sergix-maybe-finance
     image: ghcr.io/maybe-finance/maybe:sha-9fa3698823476a5b1773176ed67bb3d327d1dc05
     restart: unless-stopped
     privileged: false
@@ -35,9 +35,9 @@ services:
     environment:
       <<: *rails_env
     depends_on:
-      maybe-finance-postgres:
+      sergix-maybe-finance-postgres:
         condition: service_healthy
-      maybe-finance-redis:
+      sergix-maybe-finance-redis:
         condition: service_healthy
     x-casaos:
       volumes:
@@ -77,8 +77,8 @@ services:
           description:
             en_us: "OpenAI API access token. NOTE: enabling OpenAI will incur costs when you use AI-related features in the app (chat, rules). Make sure you have set appropriate spend limits on your account before adding this."
 
-  maybe-finance-postgres:
-    container_name: maybe-finance-postgres
+  sergix-maybe-finance-postgres:
+    container_name: sergix-maybe-finance-postgres
     image: postgres:16
     restart: unless-stopped
     volumes:
@@ -110,21 +110,21 @@ services:
           description:
             en_us: "Password for the PostgreSQL user."
 
-  maybe-finance-worker:
-    container_name: maybe-finance-worker
+  sergix-maybe-finance-worker:
+    container_name: sergix-maybe-finance-worker
     image: ghcr.io/maybe-finance/maybe:sha-9fa3698823476a5b1773176ed67bb3d327d1dc05
     restart: unless-stopped
     command: bundle exec sidekiq
     depends_on:
-      maybe-finance-redis:
+      sergix-maybe-finance-redis:
         condition: service_healthy
     environment:
       <<: *rails_env
     networks:
       - maybe_finance_network
 
-  maybe-finance-redis:
-    container_name: maybe-finance-redis
+  sergix-maybe-finance-redis:
+    container_name: sergix-maybe-finance-redis
     image: redis:latest
     restart: unless-stopped
     environment:
@@ -156,13 +156,13 @@ networks:
 x-casaos:
   architectures:
     - amd64
-  main: maybe-finance
+  main: sergix-maybe-finance
   description:
     en_us:
       Maybe is a fully* open-source OS for your personal finances 
       built by a small team alongside an incredible community Discord
   tagline:
-    en_us: maybe-finance
+    en_us: sergix-maybe-finance
   developer: "Maybe Finance"
   author: Sergix
   icon: https://raw.githubusercontent.com/maybe-finance/maybe/refs/heads/main/app/assets/images/logo-color.png
