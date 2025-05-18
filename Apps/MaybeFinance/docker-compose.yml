@@ -22,7 +22,7 @@ x-rails-env: &rails_env
 # Service definitions for the sergix-maybe-finance application
 services:
   sergix-maybe-finance:
-    container_name: sergix-sergix-maybe-finance
+    container_name: sergix-maybe-finance
     image: ghcr.io/maybe-finance/maybe:sha-9fa3698823476a5b1773176ed67bb3d327d1dc05
     restart: unless-stopped
     privileged: false
@@ -125,7 +125,7 @@ services:
 
   sergix-maybe-finance-redis:
     container_name: sergix-maybe-finance-redis
-    image: redis:latest
+    image: redis:sha-63b87554f0a0459692d44d06f62b0c10296c8a1f
     restart: unless-stopped
     environment:
       <<: *rails_env
